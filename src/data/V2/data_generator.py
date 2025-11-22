@@ -3,28 +3,23 @@ import numpy as np
 import glob
 import os
 
-# ==========================================
-# CONFIGURACIÓN
-# ==========================================
 CUTOFF_DATE = '2025-04-15' 
 TOTAL_SAMPLES_DESEADOS = 350 
 SEMILLA_RANDOM = 42 
 np.random.seed(SEMILLA_RANDOM)
 
 def procesar_excel_maestro():
-    print("--- PASO 1: Buscando archivo Excel (.xlsx) ---")
+    print(" Buscando archivo excel")
     excel_files = glob.glob("*.xlsx")
     
     if not excel_files:
-        raise FileNotFoundError("❌ No encontré ningún archivo .xlsx en esta carpeta.")
+        raise FileNotFoundError(" No se encontro ningún archivo .xlsx en esta carpeta.")
     
     target_file = excel_files[0]
     print(f"-> Procesando archivo: {target_file}")
     
-    # Leer todas las hojas
     dict_sheets = pd.read_excel(target_file, sheet_name=None)
     
-    # Identificar hoja REPORTE
     sheet_reporte = None
     for sheet_name in dict_sheets.keys():
         if "REPORTE" in sheet_name.upper():
@@ -32,13 +27,12 @@ def procesar_excel_maestro():
             break
             
     if not sheet_reporte:
-        raise ValueError("❌ No encontré la hoja 'REPORTE'.")
+        raise ValueError(" No se encontro la hoja 'REPORTE'.")
     
-    print(f"-> Hoja Maestra: '{sheet_reporte}'")
+    print(f"-> Hoja: '{sheet_reporte}'")
     
     # Procesar Reporte
     df_rep = dict_sheets[sheet_reporte]
-    # Mapeo de columnas (Asegúrate que CARRERA exista en el Excel)
     df_rep.rename(columns={'%': 'Beca', 'TIPO CARRERA': 'Tipo', 
                            'ESTUDIANTE': 'Nombre', 'REG': 'Registro',
                            'CARRERA': 'Carrera_Nombre'}, inplace=True)
@@ -47,12 +41,10 @@ def procesar_excel_maestro():
     
     real_data_rows = []
     
-    # Iterar hojas de estudiantes
     for sheet_name, df_raw in dict_sheets.items():
         if sheet_name == sheet_reporte: continue
             
         try:
-            # Buscar cabecera dinámicamente
             header_idx = -1
             for i in range(min(20, len(df_raw))):
                 row_vals = df_raw.iloc[i].astype(str).values
@@ -100,12 +92,10 @@ def procesar_excel_maestro():
             
         except Exception: continue
 
-    # Unir con Metadata del Reporte
     df_features = pd.DataFrame(real_data_rows)
     df_merged = pd.merge(df_features, df_rep[['MatchName', 'Tipo', 'Beca', 'Registro', 'Carrera_Nombre']], 
                          on='MatchName', how='left')
     
-    # Rellenar nulos por defecto
     df_merged['Tipo'] = df_merged['Tipo'].fillna('SEMESTRAL')
     df_merged['Beca'] = df_merged['Beca'].fillna(0.5)
     df_merged['Carrera_Nombre'] = df_merged['Carrera_Nombre'].fillna('DESCONOCIDA')
@@ -121,11 +111,9 @@ def procesar_excel_maestro():
     df_merged['X7_Tipo_Carrera'] = df_merged['Tipo'].apply(lambda x: 1 if 'ANUAL' in str(x).upper() else 0)
     # X8 Beca
     df_merged['X8_Beca'] = df_merged['Beca']
-    # X9 Carrera ID (Convertir texto a numero para XGBoost)
-    # pd.factorize devuelve una tupla (array_codigos, index_unicos). Tomamos [0]
+    # X9 Carrera ID
     df_merged['X9_Carrera_Id'] = pd.factorize(df_merged['Carrera_Nombre'])[0]
     
-    # Constantes
     df_merged['X4_Semanas_Restantes'] = 8 
     df_merged['X5_Disp_Neta_Restante'] = 50.0
     
@@ -140,7 +128,6 @@ def generar_sinteticos(df_real):
     if n_a_generar <= 0: return df_real
     
     synthetic_samples = []
-    # Solo interpolamos variables continuas numéricas
     cols_continuas = ['X1_Horas_Actuales', 'X2_Frec_Semanal', 'X3_Horas_Fallidas', 'Y_Horas_Totales_Finales']
     
     for _ in range(n_a_generar):
@@ -149,13 +136,11 @@ def generar_sinteticos(df_real):
         lam = np.random.uniform(0.2, 0.8)
         
         child = {}
-        # Interpolación con ruido
         for col in cols_continuas:
             val = p1[col]*lam + p2[col]*(1-lam)
             noise = np.random.normal(0, 0.02*val) if val > 0 else 0
             child[col] = max(0, val + noise)
             
-        # Herencia Categórica (Carrera, Beca, Antiguedad se heredan del padre dominante)
         dom = p1 if lam > 0.5 else p2
         
         child['X4_Semanas_Restantes'] = 8
@@ -163,7 +148,7 @@ def generar_sinteticos(df_real):
         child['X6_Antiguedad'] = dom['X6_Antiguedad']
         child['X7_Tipo_Carrera'] = dom['X7_Tipo_Carrera']
         child['X8_Beca'] = dom['X8_Beca']
-        child['X9_Carrera_Id'] = dom['X9_Carrera_Id'] # Hereda la carrera
+        child['X9_Carrera_Id'] = dom['X9_Carrera_Id']
         
         synthetic_samples.append(child)
         
@@ -173,7 +158,6 @@ if __name__ == "__main__":
     try:
         df_base = procesar_excel_maestro()
         
-        # Definir columnas finales
         cols = ['X1_Horas_Actuales', 'X2_Frec_Semanal', 'X3_Horas_Fallidas', 
                 'X4_Semanas_Restantes', 'X5_Disp_Neta_Restante', 'X6_Antiguedad', 
                 'X7_Tipo_Carrera', 'X8_Beca', 'X9_Carrera_Id', 
