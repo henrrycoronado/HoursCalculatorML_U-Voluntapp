@@ -7,7 +7,7 @@ import os
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
 
-ARCHIVO_DATASET = '../data/V2/dataset_voluntariado_aumentado.csv'
+ARCHIVO_DATASET = '../data/V2/dataset_voluntariado_aumentado1000.csv'
 
 print(f" Cargando dataset: {ARCHIVO_DATASET} ")
 df = pd.read_csv(ARCHIVO_DATASET)

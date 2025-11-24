@@ -7,7 +7,7 @@ import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-ARCHIVO_DATASET = '../data/V2/dataset_voluntariado_aumentado350.csv'
+ARCHIVO_DATASET = '../data/V2/dataset_voluntariado_aumentado1000.csv'
 
 print(f"--- Cargando dataset para optimización: {ARCHIVO_DATASET} ---")
 if not os.path.exists(ARCHIVO_DATASET):

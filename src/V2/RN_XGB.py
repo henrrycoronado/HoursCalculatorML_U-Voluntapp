@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import os
 
 # 1. CARGA DE DATOS
-ARCHIVO_DATASET = '../data/V2/dataset_voluntariado_aumentado.csv'
+ARCHIVO_DATASET = '../data/V2/dataset_voluntariado_aumentado1000.csv'
 if not os.path.exists(ARCHIVO_DATASET):
      raise FileNotFoundError(f" No encuentro el archivo {ARCHIVO_DATASET}. Asegúrate de que esté en esta carpeta.")
 
