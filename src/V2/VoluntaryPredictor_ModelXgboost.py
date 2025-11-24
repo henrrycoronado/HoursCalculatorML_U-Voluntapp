@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import xgboost as xgb
 import matplotlib.pyplot as plt
-import seaborn as sns
 import joblib
 import os
 from sklearn.model_selection import train_test_split
@@ -17,8 +16,8 @@ X = df[[
     'X1_Horas_Actuales', 
     'X2_Frec_Semanal', 
     'X3_Horas_Fallidas', 
-    'X4_Semanas_Restantes', 
-    'X5_Disp_Neta_Restante', 
+    #'X4_Semanas_Restantes', 
+    #'X5_Disp_Neta_Restante', 
     'X6_Antiguedad', 
     'X7_Tipo_Carrera', 
     'X8_Beca',
@@ -37,9 +36,9 @@ print("\n Entrenando Modelo")
 
 model = xgb.XGBRegressor(
     objective='reg:squarederror', # Tarea de regresión
-    n_estimators=100,             # Número de árboles de decisión
-    learning_rate=0.1,            # Velocidad de aprendizaje
-    max_depth=3,                  # Profundidad de los árboles (evita overfitting)
+    n_estimators=200,             # Número de árboles de decisión
+    learning_rate=0.05,            # Velocidad de aprendizaje
+    max_depth=5,                  # Profundidad de los árboles (evita overfitting)
     random_state=42,
     n_jobs=-1                     
 )
