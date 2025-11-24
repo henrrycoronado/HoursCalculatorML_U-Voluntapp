@@ -38,7 +38,7 @@ model = xgb.XGBRegressor(
     objective='reg:squarederror', # Tarea de regresión
     n_estimators=200,             # Número de árboles de decisión
     learning_rate=0.05,            # Velocidad de aprendizaje
-    max_depth=5,                  # Profundidad de los árboles (evita overfitting)
+    max_depth=4,                 # Profundidad de los árboles (evita overfitting)
     random_state=42,
     n_jobs=-1                     
 )
